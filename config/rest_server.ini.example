@@ -1,0 +1,20 @@
+; sudo uwsgi --ini config/rest_server.ini
+; http://uwsgi-docs.readthedocs.io/en/latest/ThingsToKnow.html
+; https://www.reddit.com/r/Python/comments/4s40ge/understanding_uwsgi_threads_processes_and_gil/
+
+[uwsgi]
+
+chdir = /home/stealth/programming/voat
+module = rest_server:app
+
+master = true
+processes = 10
+threads = 1
+
+uid = voat
+gid = voat
+socket = 127.0.0.1:3031
+chmod-socket = 664
+vacuum = true
+
+die-on-term = true

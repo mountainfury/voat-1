@@ -1,13 +1,25 @@
 {
-    "debug":true,
-    "SQLALCHEMY_DATABASE_URI":"sqlite:////etc/voat/db/voat.db",
+    "debug":false,
+    "SQLALCHEMY_DATABASE_URI":"postgresql+psycopg2://postgres:password@localhost/voat",
     "min_length_username":4,
     "min_length_api_token":4,
     "min_length_subvoat_name":4,
-    "min_length_post_title":4,
-    "min_length_post_body":4,
+    "min_length_thread_title":4,
+    "min_length_thread_body":4,
+    "min_length_comment_body":4,
+    "min_length_username":4,
+    "min_length_password":4,
+    "max_length_comment_body":5000,
+    "months_to_token_expiration":1,
+    "max_length_username":20,
+    "max_length_password":50,
+    "max_length_thread_title":50,
+    "max_length_thread_body":2000,
+    "max_threads_per_request":25,
     "server_key_bits":1024,
+    "broker":"redis://localhost:6379",
+    "result_backend":"redis://localhost:6379",
 
-    "whitelisted_servers":["http://192.168.1.11:5000"]
+    "whitelisted_servers":["http://192.168.1.11:8000"]
 }
 

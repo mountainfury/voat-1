@@ -2,27 +2,22 @@ import json
 import os
 
 from sqlalchemy.ext.automap     import automap_base
-from sqlalchemy.orm             import Session
-from sqlalchemy                 import create_engine
+from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy                 import create_engine, MetaData
 from sqlalchemy_utils.functions import database_exists, drop_database
 
-from voat_sql.schemas     import user_schema
-from voat_sql.schemas     import subvoat_schema
-from voat_sql.schemas     import server_schema 
-from voat_sql.db_connect  import Connect
-from voat_sql             import initialize_sql
+from voat_sql.schemas    import * 
+from voat_sql.db_connect import Connect
 
 
 class CreateDB():
     def __init__(self, db_path):
         self.db_path = db_path
-        self.base    = automap_base()
         self.engine  = create_engine(db_path, echo=True)
 
 
-
     def create(self):
-        initialize_sql(self.engine)
+        Base.metadata.create_all(self.engine)
 
 
 
@@ -33,17 +28,17 @@ if __name__ == '__main__':
         cfg     = json.load(c)
         db_path = cfg['SQLALCHEMY_DATABASE_URI']
 
-        try:
-            if database_exists(db_path):
-                confirm = input('database already exists, delete anyways? [y/n]: ').lower().strip()
+        #try:
+        #    if database_exists(db_path):
+        #        confirm = input('database already exists, delete anyways? [y/n]: ').lower().strip()
 
-                if confirm != 'y' and confirm.lower() != 'yes':
-                    exit()
+        #        if confirm != 'y' and confirm.lower() != 'yes':
+        #            exit()
 
-                drop_database(db_path)
+        #        drop_database(db_path)
 
-        except FileNotFoundError as e:
-            pass
+        #except FileNotFoundError as e:
+        #    pass
 
         cdb     = CreateDB(db_path)
         result  = cdb.create()

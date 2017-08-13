@@ -1,38 +1,64 @@
 
 from flask import Flask
 from flask_restful import  Api
-
+from flask_cors import CORS, cross_origin
 
 # API classes
 from voat_rest  import register
 from voat_rest  import authenticate
 from voat_rest  import subvoat
 from voat_rest  import utils
+from voat_rest  import vote
 from voat_utils import config
+from voat_utils.validate import Valid
 
+from voat_sql.utils.user    import UserUtils
+from voat_sql.utils.subvoat import SubvoatUtils
 
-
+from voat_sql.utils.db import get_db
 
 # Need a logger
 
 app = Flask(__name__)
+CORS(app)
 api = Api(app)
 
-app.config.update(config.get_config())
+
+# Guess I'll init the objects once here and pass them along
+# AFAIK this guarantees one import
+db            = get_db()
+cfg           = config.get_config()
+validate      = Valid(cfg)
+user_utils    = UserUtils(db=db,    config=cfg, validation_obj=validate)
+subvoat_utils = SubvoatUtils(db=db, config=cfg, user_utils=user_utils, validation_obj=validate)
+
+app.config.update(cfg)
+
+kwargs={'db':db, 
+        'user_utils': user_utils, 
+        'cfg':cfg,
+        'subvoat_utils':subvoat_utils,
+        'validate':validate}
 
 
-api.add_resource(authenticate.Authenticate, '/authenticate')
-api.add_resource(register.Register,         '/register')
-api.add_resource(subvoat.AddSubvoat,        '/create_subvoat')
-api.add_resource(subvoat.ListSubvoats,      '/list_subvoats')
-api.add_resource(subvoat.GetPosts,          '/get_posts')
-api.add_resource(subvoat.SubmitPost,        '/submit_post')
-api.add_resource(utils.GetPublicKey,        '/get_public_key')
+api.add_resource(authenticate.Authenticate, '/authenticate',   resource_class_kwargs=kwargs)
+api.add_resource(register.Register,         '/register',       resource_class_kwargs=kwargs)
+api.add_resource(subvoat.AddSubvoat,        '/create_subvoat', resource_class_kwargs=kwargs)
+api.add_resource(subvoat.ListSubvoats,      '/list_subvoats',  resource_class_kwargs=kwargs)
+api.add_resource(subvoat.GetThreads,        '/get_threads/<string:subvoat_name>',    resource_class_kwargs=kwargs)
+api.add_resource(subvoat.GetThread,         '/get_thread/<string:thread_uuid>',   resource_class_kwargs=kwargs)
+api.add_resource(subvoat.GetLatestThread,   '/get_latest_thread',   resource_class_kwargs=kwargs)
+api.add_resource(subvoat.SubmitThread,      '/submit_thread',  resource_class_kwargs=kwargs)
+api.add_resource(vote.VoteThread,           '/vote_thread',    resource_class_kwargs=kwargs)
+api.add_resource(vote.VoteComment,          '/vote_comment',   resource_class_kwargs=kwargs)
+api.add_resource(subvoat.SubmitComment,     '/submit_comment', resource_class_kwargs=kwargs)
+api.add_resource(utils.GetPublicKey,        '/get_public_key', resource_class_kwargs=kwargs)
 
 
 # Debugging
 if __name__ == '__main__':
-    app.run(debug=config.get_config()['debug'])
+    # Make it pull all of these options from the config
+    app.run(host="0.0.0.0", port=8080, debug=config.get_config()['debug'])
          
         
 
